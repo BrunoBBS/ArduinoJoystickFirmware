@@ -134,3 +134,14 @@ Hold calibration button to finish...
 └── README.md         // You are here.
 
 ```
+
+## Compiling and flashing
+To use this project you will need the Arduino IDE installed.
+
+Install the [ArduinoJoystickLibrary](https://github.com/MHeironimus/ArduinoJoystickLibrary#installation-instructions).
+
+Put the contents of this folder inside a folder called `Joystick`, as this enables you to import it into arduino IDE as a sketch.
+
+Make the modifications needed to the main file.
+
+Upload it to the arduino.
