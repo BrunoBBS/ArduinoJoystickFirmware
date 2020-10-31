@@ -6,22 +6,20 @@
 #include "Bezier.hpp"
 
 #define CALIBRATION_BUTTON 7
-#define AXIS_ARRAY_SIZE 3
 #define LED 13
+
 #define CENTER 512
+
+#define AXIS_ARRAY_SIZE 3
 
 #define LINEAR 2
 #define CURVE 1
 
-#define ANALOG_FILTER_M_COUNT 3
-#define ANALOG_FILTER_M_DISCARD 1
-
 // some pins can function as either digital or analog inputs, so we predefine
 // which will operate in which mode
-//                                 X   Y   RX  RY  Th
-/* static const int analog_pins[] = { A0, A1, A8, A9, A6 }; */
+//                                 X   Y   Th
 static const int analog_pins[] = { A0, A1, A6 };
-static const int digital_pins[] = { 3, 5, 6, 7, 8, 9 };
+static const int digital_pins[] = { 3, 5, 6, 7, 8, 9, 14 };
 
 struct {
     bool is_calibrated = false;
@@ -230,6 +228,10 @@ int axisRead(int index, int option = CURVE)
             1023),
         0,
         1023);
+
+int buttonRead(int index)
+{
+    return !digitalRead(digital_pins[index]);
 }
 
 // ===========================================================================
@@ -258,8 +260,8 @@ void setup()
 void loop()
 {
     // read the buttons
-    for (int i = 0; i < sizeof(digital_pins) / sizeof(int); i++)
-        joystick.setButton(i, !digitalRead(digital_pins[i]));
+    for (int btn = 0; btn < (sizeof(digital_pins) / sizeof(int)); btn++)
+        joystick.setButton(btn, buttonRead(btn));
 
     // read the analog inputs
     joystick.setYAxis(axisRead(0, CURVE));
