@@ -5,21 +5,29 @@
 
 #include "Bezier.hpp"
 
+//  <CUSTOM><BUTTON>
+// Change this value to the number of the pin that you want to use to trigger
+// calibration.
 #define CALIBRATION_BUTTON 7
-#define LED 13
 
+#define LED 13
 #define CENTER 512
 
-#define AXIS_ARRAY_SIZE 3
-
+// Flags to determine if an axis will follow a curve or will be linear.
 #define LINEAR 2
 #define CURVE 1
 
-// some pins can function as either digital or analog inputs, so we predefine
-// which will operate in which mode
-//                                 X   Y   Th
+//  <CUSTOM><AXIS>
+// Add the pins that correspond to axes in your joystic and update the number of
+// pins in the definition AXIS_ARRAY_SIZE.
+#define AXIS_ARRAY_SIZE 3
+//                               X   Y   Th
 static const int axes_pins[] = { A0, A1, A6 };
+
+//  <CUSTOM><BUTTON>
+// Add the pins that correspond to buttons in your joystic to this array.
 static const int button_pins[] = { 3, 5, 6, 7, 8, 9, 14 };
+
 
 struct {
     bool is_calibrated = false;
@@ -101,6 +109,13 @@ void calibration()
     Serial.println("Done calibrating");
     digitalWrite(LED, LOW);
 
+
+    //  <CUSTOM><CURVE>
+    // Add new lines here to define curves for new axes.
+    // See the Readme for information about generating these values for the
+    // points in the Bézier curve.
+    // This number ---here--¬ represents which axis will be receive which curve.
+    //                      V
     calibration_data.curves[0] = Bezier(Point(0, 0), Point(0, 900), Point(1023, 100), Point(1023, 1023));
     calibration_data.curves[1] = Bezier(Point(0, 0), Point(0, 900), Point(1023, 100), Point(1023, 1023));
 
@@ -253,32 +268,34 @@ void loop()
     for (int btn = 0; btn < (sizeof(button_pins) / sizeof(int)); btn++)
         joystick.setButton(btn, buttonRead(btn));
 
-    // read the axes
+    //  <CUSTOM><AXIS>
+    // For each axis add a new line here.
+    // You will need to reference the ArduinoJoystickLibrary (see readme) to get
+    // which axis names are valid.
+    // 1: The index of the axis in the axes_pins array;
+    // 2: The number of reads to make and get the median (use odd numbers);
+    // 3: The type of mapping to use: CURVE or LINEAR.
+    // Parameter numbers       1  2   3
+    //                         V  V   V
     joystick.setYAxis(axisRead(0, 3, CURVE));
     joystick.setXAxis(axisRead(1, 3, CURVE));
     joystick.setZAxis(axisRead(2, 5, LINEAR));
 
-    /* joystick.setRxAxis(constrain(map(analog(A8), */
-    /* calibration_data.min[2], */
-    /* calibration_data.max[2], */
-    /* 0, */
-    /* 1023), */
-    /* 0, */
-    /* 1023)); */
-    /* joystick.setRyAxis(constrain(map(analog(A9), */
-    /* calibration_data.min[3], */
-    /* calibration_data.max[3], */
-    /* 0, */
-    /* 1023), */
-    /* 0, */
-    /* 1023)); */
-    //Uncomment to enable HAT AS DIGITAL and COMMENT the Rx and Ry axes
-    // read one joystick as a hatswitch
-    // tranform x and y readings into an angle for the hatswitch
-    // From here {
-    /* int hat_x = analogRead(A8); */
-    /* int hat_y = analogRead(A9); */
 
-    /* joystick.setHatSwitch(0, hat(hat_x, hat_y)); */
-    // To here }
+    //  <CUSTOM><HAT>
+    // Change the indices according to your axes_pins array
+    // Uncomment just one of the sections below
+
+    // Uncomment to enable HAT AS ANALOG (axis)
+    // =====================
+    // joystick.setRxAxis(axisRead(3, 3, CURVE));
+    // joystick.setRyAxis(axisRead(4, 3, CURVE));
+    // =====================
+
+    // Uncomment to enable HAT AS DIGITAL (button)
+    // =====================
+    // int hat_x = analogRead(axisRead(3, 3, LINEAR));
+    // int hat_y = analogRead(axisRead(4, 3, LINEAR));
+    // joystick.setHatSwitch(0, hat(hat_x, hat_y));
+    // =====================
 }
