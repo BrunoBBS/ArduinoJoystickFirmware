@@ -24,3 +24,14 @@ Point Bezier::linerp(Point a, Point b, int t)
 {
     return a + ((b - a) * ((float)t / 1023));
 }
+
+Point Bezier::eval(int t)
+{
+    Point ab = Bezier::linerp(this->A, this->B, t);
+    Point bc = Bezier::linerp(this->B, this->C, t);
+    Point cd = Bezier::linerp(this->C, this->D, t);
+    Point abbc = Bezier::linerp(ab, bc, t);
+    Point bccd = Bezier::linerp(bc, cd, t);
+    Point ret = Bezier::linerp(abbc, bccd, t);
+    return ret;
+}
