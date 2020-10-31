@@ -99,7 +99,7 @@ void calibration()
             uint16_t curr = analogRead(analog_pins[i]);
             Serial.print("Axis: ");
             Serial.print(i);
-            Serial.print(" - Value: ");
+            Serial.print(" - Raw Value: ");
             Serial.println(curr);
 
             calibration_data.min[i] = min(curr, calibration_data.min[i]);
@@ -243,9 +243,9 @@ void setup()
 {
     Serial.begin(9600);
     delay(2000);
-    Serial.println("========================");
-    Serial.println("Joystick Initializing");
-    Serial.println("========================");
+    Serial.println("=================================");
+    Serial.println("Joystick Initializing - baud 9600");
+    Serial.println("=================================");
     Serial.println();
     Serial.println("Hold calibration button to force calibration...");
     for (int i = 0; i < 50; i++) {
