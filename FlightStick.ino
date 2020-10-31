@@ -148,21 +148,20 @@ int compare(const void* a, const void* b)
     return x - y;
 }
 
-int analogReadFilter(int pin)
+// Median filter, use with odd values (non even).
+int analogReadFilter(int pin, int total_reads)
 {
-    uint16_t measurements[ANALOG_FILTER_M_COUNT];
+    uint16_t* measurements = (uint16_t*)malloc(total_reads * sizeof(uint16_t));
 
-    for (int i = 0; i < ANALOG_FILTER_M_COUNT; i++)
+    for (int i = 0; i < total_reads; i++)
         measurements[i] = analogRead(pin);
 
-    float sum = 0;
+    qsort(measurements, total_reads, sizeof(uint16_t), compare);
 
-    qsort(measurements, ANALOG_FILTER_M_COUNT, sizeof(int16_t), compare);
+    int filtered_val = measurements[total_reads / 2];
 
-    for (int i = ANALOG_FILTER_M_DISCARD; i < ANALOG_FILTER_M_COUNT - ANALOG_FILTER_M_DISCARD; i++)
-        sum += measurements[i];
-
-    return sum / (ANALOG_FILTER_M_COUNT - 2 * ANALOG_FILTER_M_DISCARD);
+    free(measurements);
+    return filtered_val;
 }
 
 int readToCurve(int reading, int index)
@@ -202,32 +201,34 @@ int hat(int hat_x, int hat_y)
     }
 }
 
-int axisRead(int index, int option = CURVE)
+int axisRead(int index, int filter_total, int option = CURVE)
 {
     if (option == CURVE) {
         return readToCurve(
-            constrain(
-                map(
-                    analogReadFilter(
-                        analog_pins[index]),
-                    calibration_data.min[index],
-                    calibration_data.max[index],
-                    0,
-                    1023),
+            map(
+                analogReadFilter(
+                    analog_pins[index],
+                    filter_total
+                ),
+                calibration_data.min[index],
+                calibration_data.max[index],
                 0,
-                1023),
-            index);
+                1023
+            ),
+            index
+        );
     }
-    return constrain(
-        map(
-            analogReadFilter(
-                analog_pins[index]),
-            calibration_data.min[index],
-            calibration_data.max[index],
-            0,
-            1023),
+    return map(
+        analogReadFilter(
+            analog_pins[index],
+            filter_total
+        ),
+        calibration_data.min[index],
+        calibration_data.max[index],
         0,
-        1023);
+        1023
+    );
+}
 
 int buttonRead(int index)
 {
@@ -263,10 +264,10 @@ void loop()
     for (int btn = 0; btn < (sizeof(digital_pins) / sizeof(int)); btn++)
         joystick.setButton(btn, buttonRead(btn));
 
-    // read the analog inputs
-    joystick.setYAxis(axisRead(0, CURVE));
-    joystick.setXAxis(axisRead(1, CURVE));
-    joystick.setZAxis(axisRead(2, LINEAR));
+    // read the axes
+    joystick.setYAxis(axisRead(0, 3, CURVE));
+    joystick.setXAxis(axisRead(1, 3, CURVE));
+    joystick.setZAxis(axisRead(2, 5, LINEAR));
 
     /* joystick.setRxAxis(constrain(map(analog(A8), */
     /* calibration_data.min[2], */
