@@ -18,8 +18,8 @@
 // some pins can function as either digital or analog inputs, so we predefine
 // which will operate in which mode
 //                                 X   Y   Th
-static const int analog_pins[] = { A0, A1, A6 };
-static const int digital_pins[] = { 3, 5, 6, 7, 8, 9, 14 };
+static const int axes_pins[] = { A0, A1, A6 };
+static const int button_pins[] = { 3, 5, 6, 7, 8, 9, 14 };
 
 struct {
     bool is_calibrated = false;
@@ -85,7 +85,7 @@ void calibration()
         Serial.println("========= Calibrating =========");
         for (int i = 0; i < AXIS_ARRAY_SIZE; i++) {
 
-            uint16_t curr = analogRead(analog_pins[i]);
+            uint16_t curr = analogRead(axes_pins[i]);
             Serial.print("Axis: ");
             Serial.print(i);
             Serial.print(" - Raw Value: ");
@@ -118,11 +118,11 @@ void setupPins(void)
     // Set all the digital pins as inputs
     // with the pull-up enabled, except for the
     // two serial line pins
-    for (int pin : digital_pins) {
+    for (int pin : button_pins) {
         pinMode(pin, INPUT_PULLUP);
     }
 
-    for (int Ai : analog_pins) {
+    for (int Ai : axes_pins) {
         pinMode(Ai, INPUT);
         digitalWrite(Ai, LOW);
     }
@@ -196,7 +196,7 @@ int axisRead(int index, int filter_total, int option = CURVE)
         return readToCurve(
             map(
                 analogReadFilter(
-                    analog_pins[index],
+                    axes_pins[index],
                     filter_total
                 ),
                 calibration_data.min[index],
@@ -209,7 +209,7 @@ int axisRead(int index, int filter_total, int option = CURVE)
     }
     return map(
         analogReadFilter(
-            analog_pins[index],
+            axes_pins[index],
             filter_total
         ),
         calibration_data.min[index],
@@ -221,7 +221,7 @@ int axisRead(int index, int filter_total, int option = CURVE)
 
 int buttonRead(int index)
 {
-    return !digitalRead(digital_pins[index]);
+    return !digitalRead(button_pins[index]);
 }
 
 // ===========================================================================
@@ -250,7 +250,7 @@ void setup()
 void loop()
 {
     // read the buttons
-    for (int btn = 0; btn < (sizeof(digital_pins) / sizeof(int)); btn++)
+    for (int btn = 0; btn < (sizeof(button_pins) / sizeof(int)); btn++)
         joystick.setButton(btn, buttonRead(btn));
 
     // read the axes
